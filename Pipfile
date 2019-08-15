@@ -12,6 +12,8 @@ gunicorn = "*"
 flake8 = "*"
 pytest = "*"
 pytest-aiohttp = "*"
+aiopg = {extras = ["sa"],version = "*"}
+trafaret-config = "*"
 
 [requires]
 python_version = "3.7"
