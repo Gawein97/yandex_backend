@@ -1,3 +1,4 @@
+from aiopg import sa
 from sqlalchemy import (
     MetaData, Table, Column, ForeignKey,
     Integer, String, Date
@@ -27,3 +28,22 @@ citizens = Table('citizens', metadata,
                  Column('gender', String(6), nullable=False),
                  Column('import_id', Integer, ForeignKey('imports.id'), nullable=False),
                  )
+
+
+async def init_pg(app):
+    conf = app['config']['postgres']
+    engine = await sa.create_engine(
+        database=conf['database'],
+        user=conf['user'],
+        password=conf['password'],
+        host=conf['host'],
+        port=conf['port'],
+        minsize=conf['minsize'],
+        maxsize=conf['maxsize'],
+    )
+    app['db'] = engine
+
+
+async def close_pg(app):
+    app['db'].close()
+    await app['db'].wait_closed()
