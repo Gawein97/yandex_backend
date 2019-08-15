@@ -1,0 +1,32 @@
+version: '3.2'
+
+services:
+  postgres:
+      image: postgres:10
+      container_name: backend_postgres
+      volumes:
+      - "/var/run/postgres/postgres.sock:/var/run/postgres/postgres.sock"
+      - "dbdata:/var/lib/postgresql/data"
+      ports:
+      - "5433:5432"
+  web:
+      build: .
+      container_name: backend_api
+      expose:
+        - "8080"
+      volumes:
+          - ./:/app
+      command: gunicorn api.app:init_app -b :8080 --worker-class aiohttp.GunicornWebWorker --reload
+
+  nginx:
+      container_name: backend_nginx
+      image:  nginx
+      expose:
+          - "80"
+      ports:
+          - "80:80"
+          - "443:443"
+      volumes:
+          - ./etc/nginx:/etc/nginx
+volumes:
+  dbdata:
