@@ -10,6 +10,8 @@ flake8 = "*"
 aiohttp = "*"
 gunicorn = "*"
 flake8 = "*"
+pytest = "*"
+pytest-aiohttp = "*"
 
 [requires]
 python_version = "3.7"
