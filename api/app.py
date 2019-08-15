@@ -7,13 +7,8 @@ from api.schemas import my_error_handler
 from api.settings import get_config
 
 
-async def hello_world(request):
-    return web.Response(text="Привет мир")
-
-
 async def init_app(argv=None):
     app = web.Application()
-    app.add_routes([web.get('/', hello_world)])
     app['config'] = get_config(argv)
     setup_aiohttp_apispec(app=app, error_callback=my_error_handler)
     app.middlewares.append(validation_middleware)
