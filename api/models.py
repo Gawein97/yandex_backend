@@ -166,6 +166,49 @@ async def get_citizen_by_id(conn, citizen_id):
     return citizen_item
 
 
+async def get_import(conn, import_id):
+    citizen_relatives = alias(citizens)
+    select_fields = [citizens.c.citizen_id,
+                     citizens.c.town,
+                     citizens.c.street,
+                     citizens.c.building,
+                     citizens.c.apartment,
+                     citizens.c.name,
+                     citizens.c.birth_date,
+                     citizens.c.gender]
+
+    my_genius_join = citizens.outerjoin(relatives, citizens.c.id == relatives.c.relative_id) \
+        .outerjoin(citizen_relatives, citizen_relatives.c.id == relatives.c.citizen_id)
+
+    result = await conn.execute(select([*select_fields,
+                                        func.array_agg(citizen_relatives.c.citizen_id).label("relatives"),
+                                        ])
+                                .select_from(my_genius_join)
+                                .where(citizens.c.import_id == import_id)
+                                .group_by(*select_fields))
+    import_items = await result.fetchall()
+
+    return import_items
+
+
+async def get_citizens_birthdays(conn, import_id):
+    citizen_relatives = alias(citizens)
+
+    my_genius_join = citizens.outerjoin(relatives, citizens.c.id == relatives.c.relative_id) \
+        .outerjoin(citizen_relatives, citizen_relatives.c.id == relatives.c.citizen_id)
+
+    result = await conn.execute(select([citizens.c.citizen_id,
+                                        func.array_agg(func.date_part('month', citizen_relatives.c.birth_date)).label(
+                                            "birthdays"),
+                                        ])
+                                .select_from(my_genius_join)
+                                .where(citizens.c.import_id == import_id)
+                                .group_by(citizens.c.citizen_id))
+    birthdays = await result.fetchall()
+
+    return birthdays
+
+
 async def check_relatives(conn, import_id, relatives):
     result = await conn.execute(select([func.count()])
                                 .where(citizens.c.import_id == import_id)
