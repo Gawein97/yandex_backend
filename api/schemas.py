@@ -3,8 +3,7 @@ from datetime import datetime
 
 from aiohttp import web
 from marshmallow import (
-    Schema, fields, validate, pre_dump,
-    post_dump, pre_load, validates_schema,
+    Schema, fields, validate, post_dump, pre_load, validates_schema,
     ValidationError, RAISE
 )
 
@@ -30,11 +29,10 @@ class CitizenSchema(Schema):
             raise ValidationError('Date are incorrect')
         return in_data
 
-    @pre_dump
+    @post_dump
     def get_relatives(self, in_data, **kwargs):
-        data = in_data.__dict__
-        data['relatives'] = [i.citizen_id for i in in_data.relatives]
-        return data
+        in_data['relatives'] = list(filter(None, in_data['relatives']))
+        return in_data
 
     @post_dump
     def process_date(self, in_data, **kwargs):
@@ -77,7 +75,6 @@ class ImportsSchema(Schema):
 
 
 # Кастомный обработчик ошибок для aiohttp-apispec
-
 
 def my_error_handler(
         error: ValidationError,

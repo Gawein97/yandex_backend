@@ -63,6 +63,63 @@ def drop_tables(engine=test_engine):
     meta.drop_all(bind=engine, tables=[imports, relatives, citizens])
 
 
+def sample_data(engine=test_engine):
+    conn = engine.connect()
+    conn.execute(imports.insert())
+    conn.execute(citizens.insert(), [
+        {
+            "citizen_id": 1,
+            "town": "Москва",
+            "street": "Улица строителей",
+            "building": "Дом 5",
+            "apartment": 15,
+            "name": "Вера Иванова",
+            "birth_date": "5.01.2000",
+            "gender": "female",
+            "import_id": 1,
+        }, {
+            "citizen_id": 2,
+            "town": "Москва",
+            "street": "Улица Моцарта",
+            "building": "дом 46",
+            "apartment": 11,
+            "name": "Надежда Иванова",
+            "birth_date": "01.02.2000",
+            "gender": "female",
+            "import_id": 1,
+        }, {
+            "citizen_id": 3,
+            "town": "Москва",
+            "street": "Ленина",
+            "building": "д.15/43",
+            "apartment": 6,
+            "name": "Любовь Степанова",
+            "birth_date": "01.03.2000",
+            "gender": "female",
+            "import_id": 1,
+        }, {
+            "citizen_id": 4,
+            "town": "Москва",
+            "street": "Гончарова",
+            "building": "16k7стр5",
+            "apartment": 11,
+            "name": "София Иванова",
+            "birth_date": "01.04.2000",
+            "gender": "female",
+            "import_id": 1,
+        }
+    ])
+    conn.execute(relatives.insert(), [
+        {'citizen_id': 1, 'relative_id': 2},
+        {'citizen_id': 1, 'relative_id': 3},
+        {'citizen_id': 3, 'relative_id': 1},
+        {'citizen_id': 2, 'relative_id': 1},
+        {'citizen_id': 2, 'relative_id': 4},
+        {'citizen_id': 4, 'relative_id': 2},
+    ])
+    conn.close()
+
+
 if __name__ == '__main__':
     setup_db(USER_CONFIG['postgres'])
     create_tables(engine=user_engine)

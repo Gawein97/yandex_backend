@@ -1,49 +1,6 @@
 import json
 
-mock_data = {
-    "citizens": [{
-        "citizen_id": 1,
-        "town": "Москва",
-        "street": "Улица строителей",
-        "building": "Дом 5",
-        "apartment": 15,
-        "name": "Вера Иванова",
-        "birth_date": "5.01.2000",
-        "gender": "female",
-        "relatives": [2, 3]
-    }, {
-        "citizen_id": 2,
-        "town": "Москва",
-        "street": "Улица Моцарта",
-        "building": "дом 46",
-        "apartment": 11,
-        "name": "Надежда Иванова",
-        "birth_date": "01.02.2000",
-        "gender": "female",
-        "relatives": [1, 4]
-    }, {
-        "citizen_id": 3,
-        "town": "Москва",
-        "street": "Ленина",
-        "building": "д.15/43",
-        "apartment": 6,
-        "name": "Любовь Степанова",
-        "birth_date": "01.03.2000",
-        "gender": "female",
-        "relatives": [1]
-    }, {
-        "citizen_id": 4,
-        "town": "Москва",
-        "street": "Гончарова",
-        "building": "16k7стр5",
-        "apartment": 11,
-        "name": "София Иванова",
-        "birth_date": "01.04.2000",
-        "gender": "female",
-        "relatives": [2]
-    }]
-}
-mock_headers = {"Content-Type": "application/json"}
+from . import mock_data, mock_headers, mock_update
 
 
 async def test_correct_import(cli, tables_and_data):
@@ -51,8 +8,7 @@ async def test_correct_import(cli, tables_and_data):
     post_data = mock_data.copy()
     response = await cli.post('/imports', data=json.dumps(post_data), headers=mock_headers)
 
-    assert response.status == 200
-    assert 'Привет мир' in await response.text()
+    assert response.status == 201
 
 
 async def test_circular_relative(cli, tables_and_data):
@@ -75,7 +31,7 @@ async def test_unknown_field(cli, tables_and_data):
     assert response.status == 400
 
 
-async def test_unknown_field_in_citizen(cli, tables_and_data):
+async def test_unknown_field_in_citizen(cli):
     """Добавляем несуществующее поле в объект пользователя"""
     post_data = mock_data.copy()
     post_data['citizens'][0]['aliens'] = "All your base are belong to us"
@@ -145,5 +101,48 @@ async def test_invalid_gender(cli, tables_and_data):
     post_data['citizens'][0]['gender'] = "Трансформер"
 
     response = await cli.post('/imports', data=json.dumps(post_data), headers=mock_headers)
+
+    assert response.status == 400
+
+
+async def test_correct_update(cli, tables_and_data):
+    """Тестируем вставку данных в таблицу"""
+    post_data = mock_update.copy()
+    response = await cli.patch('/imports/1/citizens/1', data=json.dumps(post_data), headers=mock_headers)
+
+    assert response.status == 200
+
+
+async def test_add_unreal_relatives(cli, tables_and_data):
+    """Добавляем поле relatives с ссылкой на не сущесвтующего пользователя"""
+    post_data = mock_update.copy()
+    post_data['relatives'] = [2, 500]
+    response = await cli.patch('/imports/1/citizens/1', data=json.dumps(post_data), headers=mock_headers)
+
+    assert response.status == 400
+
+
+async def test_add_self_relatives(cli, tables_and_data):
+    """Добавляем поле relatives с ссылкой на самого себя"""
+    post_data = mock_update.copy()
+    post_data['relatives'] = [1]
+    response = await cli.patch('/imports/1/citizens/1', data=json.dumps(post_data), headers=mock_headers)
+
+    assert response.status == 400
+
+async def test_add_fake_import(cli, tables_and_data):
+    """Добавляем Обновляем пользователя из несуществующего импорта"""
+    post_data = mock_update.copy()
+    post_data['relatives'] = [1]
+    response = await cli.patch('/imports/5000/citizens/1', data=json.dumps(post_data), headers=mock_headers)
+
+    assert response.status == 400
+
+
+async def test_add_fake_citizen_id(cli, tables_and_data):
+    """Добавляем Обновляем пользователя c не существующим citizen_id"""
+    post_data = mock_update.copy()
+    post_data['relatives'] = [1]
+    response = await cli.patch('/imports/1/citizens/5000', data=json.dumps(post_data), headers=mock_headers)
 
     assert response.status == 400
