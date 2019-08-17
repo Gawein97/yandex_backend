@@ -71,6 +71,7 @@ async def insert_import(conn, new_citizens, new_relatives):
 
         inserted_citizens = await result.fetchall()
         citizen_mapper = {item[1]: item[0] for item in inserted_citizens}
+
         values = []
 
         for new_citizen in new_citizens:
@@ -78,8 +79,8 @@ async def insert_import(conn, new_citizens, new_relatives):
                 values.append({
                     'citizen_id': citizen_mapper[new_citizen['citizen_id']],
                     'relative_id': citizen_mapper[relative]})
-
-        await conn.execute(insert(relatives).returning(relatives.c.id).values(values).on_conflict_do_nothing())
+        if values:
+            await conn.execute(insert(relatives).returning(relatives.c.id).values(values).on_conflict_do_nothing())
     return import_id
 
 
@@ -163,6 +164,7 @@ async def get_citizen_by_id(conn, citizen_id):
                                 .select_from(my_genius_join)
                                 .where(citizens.c.id == citizen_id)
                                 .group_by(*select_fields))
+
     citizen_item = await result.fetchone()
 
     return citizen_item
@@ -188,6 +190,7 @@ async def get_import(conn, import_id):
                                 .select_from(my_genius_join)
                                 .where(citizens.c.import_id == import_id)
                                 .group_by(*select_fields))
+
     import_items = await result.fetchall()
 
     return import_items
@@ -206,6 +209,7 @@ async def get_citizens_birthdays(conn, import_id):
                                 .select_from(my_genius_join)
                                 .where(citizens.c.import_id == import_id)
                                 .group_by(citizens.c.citizen_id))
+
     birthdays = await result.fetchall()
 
     return birthdays
@@ -236,7 +240,9 @@ async def check_relatives(conn, import_id, relatives):
     result = await conn.execute(select([func.count()])
                                 .where(citizens.c.import_id == import_id)
                                 .where(citizens.c.citizen_id.in_(relatives)))
-    relatives_count = result.scalar()
+
+    relatives_count = await result.scalar()
+
     if relatives_count != len(relatives):
         return False
     return True
@@ -245,4 +251,5 @@ async def check_relatives(conn, import_id, relatives):
 async def check_citizen(conn, import_id, citizen_id):
     result = await conn.execute(
         select([exists().where(citizens.c.citizen_id == citizen_id).where(citizens.c.import_id == import_id)]))
+
     return await result.fetchone()

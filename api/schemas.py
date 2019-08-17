@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 
 from aiohttp import web
@@ -10,11 +11,11 @@ from marshmallow import (
 
 class CitizenSchema(Schema):
     citizen_id = fields.Integer(validate=lambda x: x >= 0, required=True)
-    town = fields.String(validate=validate.Length(min=1), required=True)
-    street = fields.String(validate=validate.Length(min=1), required=True)
-    building = fields.String(validate=validate.Length(min=1), required=True)
+    town = fields.String(validate=lambda x: bool(re.search(r'\w', x)), required=True)
+    street = fields.String(validate=lambda x: bool(re.search(r'\w', x)), required=True)
+    building = fields.String(validate=lambda x: bool(re.search(r'\w', x)), required=True)
     apartment = fields.Integer(validate=lambda x: x >= 0, required=True)
-    name = fields.String(validate=validate.Length(min=1), required=True)
+    name = fields.String(required=True)
     birth_date = fields.Date(required=True)
     gender = fields.String(validate=validate.OneOf(['male', 'female']), required=True)
     relatives = fields.List(fields.Integer(), validate=lambda x: len(set(x)) == len(x), required=True)
