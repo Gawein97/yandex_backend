@@ -16,6 +16,7 @@ aiopg = {extras = ["sa"],version = "*"}
 trafaret-config = "*"
 marshmallow = "*"
 aiohttp-apispec = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,10 +1,11 @@
 from collections import Counter
 
+import numpy as np
 from aiohttp import web
 from aiohttp_apispec import request_schema
 
 from .models import insert_import, update_citizen_data, check_relatives, check_citizen, get_import, \
-    get_citizens_birthdays
+    get_citizens_birthdays, get_percentiles
 from .schemas import ImportsSchema, CitizenSchema
 
 
@@ -86,5 +87,26 @@ async def get_birthdays(request):
         presents_counter = Counter(presents)
         for month, presents_count in presents_counter.items():
             out_data['data'][int(month)].append({'citizen_id': citizen[0], 'presents': presents_count})
+
+    return web.json_response(out_data, status=200)
+
+
+async def get_percentile(request):
+    """Считаем перентили (Я на постгресе смог посчитать, нно там не совпадает с numpy)"""
+
+    import_id = int(request.match_info.get('import_id'))
+    out_data = {'data': []}
+
+    async with request.app['db'].acquire() as conn:
+        percentiles = await get_percentiles(conn, import_id)
+
+    for item in percentiles:
+        np_ages = np.array(item['birthdays'])
+        out_data['data'].append({
+            "town": item['town'],
+            "p50": round(np.percentile(np_ages, 50, interpolation='linear'), 2),
+            "p75": round(np.percentile(np_ages, 75, interpolation='linear'), 2),
+            "p90": round(np.percentile(np_ages, 90, interpolation='linear'), 2)
+        })
 
     return web.json_response(out_data, status=200)

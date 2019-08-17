@@ -1,3 +1,5 @@
+import datetime
+
 from aiopg import sa
 from sqlalchemy import (
     MetaData, Table, Column, ForeignKey,
@@ -207,6 +209,27 @@ async def get_citizens_birthdays(conn, import_id):
     birthdays = await result.fetchall()
 
     return birthdays
+
+
+async def get_percentiles(conn, import_id):
+    """Считаем перентили (Я на постгресе смог посчитать, нно там не совпадает с numpy)"""
+    citizen_relatives = alias(citizens)
+
+    my_genius_join = citizens.outerjoin(relatives, citizens.c.id == relatives.c.relative_id) \
+        .outerjoin(citizen_relatives, citizen_relatives.c.id == relatives.c.citizen_id)
+
+    result = await conn.execute(select([citizens.c.town,
+                                        func.array_agg(
+                                            func.date_part('year', datetime.datetime.utcnow()) -
+                                            func.date_part('year', citizens.c.birth_date))
+                                       .label("birthdays"),
+                                        ])
+                                .select_from(my_genius_join)
+                                .where(citizens.c.import_id == import_id)
+                                .group_by(citizens.c.town))
+    percentiles = await result.fetchall()
+
+    return percentiles
 
 
 async def check_relatives(conn, import_id, relatives):
