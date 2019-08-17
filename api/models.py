@@ -22,12 +22,11 @@ relatives = Table('relatives', metadata,
 citizens = Table('citizens', metadata,
                  Column('id', Integer, primary_key=True, autoincrement=True),
                  Column('citizen_id', Integer, nullable=False),
-                 Column('town', String(255), nullable=False),
-                 Column('street', String(255), nullable=False),
-                 Column('building', String(255), nullable=False),
+                 Column('town', String(256), nullable=False),
+                 Column('street', String(256), nullable=False),
+                 Column('building', String(256), nullable=False),
                  Column('apartment', Integer, nullable=False),
-                 Column('building', String(255), nullable=False),
-                 Column('name', String(255), nullable=False),
+                 Column('name', String(256), nullable=False),
                  Column('birth_date', Date, nullable=False),
                  Column('gender', String(6), nullable=False),
                  Column('import_id', Integer, ForeignKey('imports.id'), nullable=False),
@@ -53,9 +52,8 @@ async def close_pg(app):
     await app['db'].wait_closed()
 
 
-async def insert_import(conn, new_citizens, new_relatives):
+async def insert_import(conn, new_citizens, new_relatives) -> Integer:
     """Добавлеие импорта с горожанами"""
-    import_id = None
     async with conn.begin():
         # Cначала вставляем запись в таблицу imports и получаем id
         result = await conn.execute(imports.insert().values().returning(imports.c.id))
@@ -250,6 +248,13 @@ async def check_relatives(conn, import_id, relatives):
 
 async def check_citizen(conn, import_id, citizen_id):
     result = await conn.execute(
-        select([exists().where(citizens.c.citizen_id == citizen_id).where(citizens.c.import_id == import_id)]))
+        select([exists().where(and_(citizens.c.citizen_id == citizen_id, citizens.c.import_id == import_id))]))
 
-    return await result.fetchone()
+    return await result.scalar()
+
+
+async def check_import(conn, import_id):
+    result = await conn.execute(
+        select([exists().where(citizens.c.import_id == import_id)]))
+
+    return await result.scalar()
