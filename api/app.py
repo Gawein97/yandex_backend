@@ -17,3 +17,7 @@ async def init_app(argv=None):
     app.on_cleanup.append(close_pg)
     setup_routes(app)
     return app
+
+
+if __name__ == '__main__':
+    init_app()
