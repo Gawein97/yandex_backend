@@ -34,3 +34,22 @@ def tables_and_data():
     sample_data()
     yield
     drop_tables()
+
+
+@pytest.fixture(params=[
+    ("citizen_id", [-1, None, 'test']),
+    ("apartment", [-1, None, 'test']),
+    ("town", ["", 1, None]),
+    ("street", ["", 1, None]),
+    ('aliens', ["All your base are belong to us"]),
+    ('birth_date', '31.22.2015'),
+    ("building", ["", 1, None]),
+    ("gender", ["Трансформер"]),
+    ("relatives", [[2, 3, 1]],),
+    ("relatives", [[3]]),
+    ("relatives", [[2, 3, 500]]),
+    ("relatives", [[]]),
+])
+async def param_test_insert_and_update(request):
+    """Тестовый набор данных для вставки пользователей"""
+    return request.param

@@ -120,25 +120,31 @@ async def update_citizen_data(conn, import_id, citizen_id, citizen_data, updatin
                 citizens.c.import_id == import_id).values(citizen_data))
         citizen_id = await result.scalar()
 
-        # Получаю id родстенников пользователя
-        relative_id = await conn.execute(
-            select([citizens.c.id, citizens.c.citizen_id]).where(relatives.c.citizen_id == citizen_id)
-            .where(relatives.c.relative_id == citizens.c.id)
-            .where(citizens.c.import_id == import_id))
-
-        citizen_relatives = await relative_id.fetchall()
-        citizen_relatives_set = {i[1] for i in citizen_relatives}
-        citizen_relatives_mapper = {i[1]: i[0] for i in citizen_relatives}
-        deleted_relatives = citizen_relatives_set - updating_relatives
-        added_relatives = updating_relatives - citizen_relatives_set
-
-        if deleted_relatives:
-            await delete_relatives_for_citizen(conn, citizen_id, citizen_relatives_mapper, deleted_relatives)
-
-        if added_relatives:
-            await add_relatives_for_citizen(conn, import_id, citizen_id, added_relatives)
+        if updating_relatives:
+            await update_citizen_relatives(conn, import_id, citizen_id, updating_relatives)
 
     return await get_citizen_by_id(conn, citizen_id)
+
+
+async def update_citizen_relatives(conn, import_id, citizen_id, updating_relatives):
+    """Обновляю родственников пользователя"""
+
+    relative_id = await conn.execute(
+        select([citizens.c.id, citizens.c.citizen_id]).where(relatives.c.citizen_id == citizen_id)
+        .where(relatives.c.relative_id == citizens.c.id)
+        .where(citizens.c.import_id == import_id))
+
+    citizen_relatives = await relative_id.fetchall()
+    citizen_relatives_set = {i[1] for i in citizen_relatives}
+    citizen_relatives_mapper = {i[1]: i[0] for i in citizen_relatives}
+    deleted_relatives = citizen_relatives_set - updating_relatives
+    added_relatives = updating_relatives - citizen_relatives_set
+
+    if deleted_relatives:
+        await delete_relatives_for_citizen(conn, citizen_id, citizen_relatives_mapper, deleted_relatives)
+
+    if added_relatives:
+        await add_relatives_for_citizen(conn, import_id, citizen_id, added_relatives)
 
 
 async def get_citizen_by_id(conn, citizen_id):

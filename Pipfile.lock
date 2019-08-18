@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c9d37d4380b85ece9393abd632d21d3fa23e85d7f40bdd49a33540132a68955e"
+            "sha256": "dcbef67326970ad706dc88517c0b1a2c41bc9c02082f70529998d563a980d959"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -50,6 +50,14 @@
             ],
             "index": "pypi",
             "version": "==1.4.0"
+        },
+        "aiohttp-route-middleware": {
+            "hashes": [
+                "sha256:c112d0eccb1cc5091f163f16e99ebb7d5fa224b0b9eea81f9d69dd6f1b088153",
+                "sha256:d64e228da14c69ffacf6306d61e1f149db379b3c2c18633ba374ae6435241e32"
+            ],
+            "index": "pypi",
+            "version": "==0.0.2"
         },
         "aiopg": {
             "extras": [
@@ -126,13 +134,6 @@
                 "sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"
             ],
             "version": "==2.8"
-        },
-        "idna-ssl": {
-            "hashes": [
-                "sha256:a933e3bb13da54383f9e8f35dc4f9cb9eb9b3b78c6b36f311254d6d0d92c6c7c"
-            ],
-            "markers": "python_version < '3.7'",
-            "version": "==1.1.0"
         },
         "importlib-metadata": {
             "hashes": [
@@ -398,15 +399,6 @@
             ],
             "index": "pypi",
             "version": "==2.0.2"
-        },
-        "typing-extensions": {
-            "hashes": [
-                "sha256:2ed632b30bb54fc3941c382decfd0ee4148f5c591651c9272473fea2c6397d95",
-                "sha256:b1edbbf0652660e32ae780ac9433f4231e7339c7f9a8057d0f042fcbcea49b87",
-                "sha256:d8179012ec2c620d3791ca6fe2bf7979d979acdbef1fca0bc56b37411db682ed"
-            ],
-            "markers": "python_version < '3.7'",
-            "version": "==3.7.4"
         },
         "wcwidth": {
             "hashes": [

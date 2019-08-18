@@ -17,6 +17,7 @@ trafaret-config = "*"
 marshmallow = "*"
 aiohttp-apispec = "*"
 numpy = "*"
+aiohttp-route-middleware = "*"
 
 [requires]
 python_version = "3.7"

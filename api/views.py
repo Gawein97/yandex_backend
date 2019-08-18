@@ -4,8 +4,8 @@ import numpy as np
 from aiohttp import web
 from aiohttp_apispec import request_schema
 
-from .models import insert_import, update_citizen_data, check_relatives, check_citizen, get_import, \
-    get_citizens_birthdays, get_percentiles, check_import
+from .models import insert_import, update_citizen_data, get_import, \
+    get_citizens_birthdays, get_percentiles
 from .schemas import ImportsSchema, CitizenSchema
 
 
@@ -28,46 +28,16 @@ async def add_import(request):
         return web.json_response(output_data, status=201)
 
 
-@request_schema(CitizenSchema(partial=True))
 async def update_citizen(request):
     """Обновляем горожанина"""
-    data = await request.json()
-    appropriate_fields = {'citizen_id', 'town', 'street', 'building', 'apartment', 'building', 'name', 'birth_date',
-                          'gender', 'relatives'}
-    data_fields = {key for key in data.keys()}
-    other_fields = data_fields - appropriate_fields
-
-    if len(other_fields) > 0 or len(data_fields) == 0:
-        return web.json_response("Other fields aren't supported", status=400)
-
     schema = CitizenSchema()
-    citizen = request['data']
-    import_id = citizen['import_id']
-    citizen_id = citizen['citizen_id']
-    updating_relatives = set()
-
-    del citizen['citizen_id']
-    del citizen['import_id']
+    citizen = request['citizen']
+    import_id = int(request.match_info.get('import_id'))
+    citizen_id = int(request.match_info.get('citizen_id'))
+    updating_relatives = set(request['relatives'])
 
     async with request.app['db'].acquire() as conn:
-        is_exist_citizen = await check_citizen(conn, import_id, citizen_id)
-
-        if not is_exist_citizen:
-            return web.json_response("Citizen does not exist", status=404)
-
-        if 'relatives' in citizen:
-            updating_relatives.update(citizen['relatives'])
-            del citizen['relatives']
-
-            is_correct_relatives = await check_relatives(conn, import_id, updating_relatives)
-
-            if not is_correct_relatives:
-                return web.json_response("Incorect relatives", status=400)
-
         updated_citizen = await update_citizen_data(conn, import_id, citizen_id, citizen, updating_relatives)
-
-    if not updated_citizen:
-        return web.json_response("Error in updating", status=400)
 
     output_data = {"data": schema.dump(updated_citizen)}
 
@@ -80,12 +50,8 @@ async def get_citizens(request):
     import_id = int(request.match_info.get('import_id'))
 
     async with request.app['db'].acquire() as conn:
-        is_import_exist = await check_import(conn, import_id)
-
-        if not is_import_exist:
-            return web.json_response("Import does not exist", status=404)
-
         import_data = await get_import(conn, import_id)
+
     output_data = {"data": schema.dump(import_data)}
 
     return web.json_response(output_data, status=200)
@@ -97,11 +63,6 @@ async def get_birthdays(request):
     out_data = {'data': {i: [] for i in range(1, 13)}}
 
     async with request.app['db'].acquire() as conn:
-        is_import_exist = await check_import(conn, import_id)
-
-        if not is_import_exist:
-            return web.json_response("Import does not exist", status=404)
-
         birthdays = await get_citizens_birthdays(conn, import_id)
 
     for citizen in birthdays:
@@ -121,11 +82,6 @@ async def get_percentile(request):
     out_data = {'data': []}
 
     async with request.app['db'].acquire() as conn:
-        is_import_exist = await check_import(conn, import_id)
-
-        if not is_import_exist:
-            return web.json_response("Import does not exist", status=404)
-
         percentiles = await get_percentiles(conn, import_id)
 
     for item in percentiles:
