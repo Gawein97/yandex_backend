@@ -123,7 +123,7 @@ async def update_citizen_data(conn, import_id, citizen_id, citizen_data, updatin
         if updating_relatives:
             await update_citizen_relatives(conn, import_id, citizen_id, updating_relatives)
 
-    return await get_citizen_by_id(conn, citizen_id)
+        return await get_citizen_by_id(conn, citizen_id)
 
 
 async def update_citizen_relatives(conn, import_id, citizen_id, updating_relatives):
@@ -170,7 +170,6 @@ async def get_citizen_by_id(conn, citizen_id):
                                 .group_by(*select_fields))
 
     citizen_item = await result.fetchone()
-
     return citizen_item
 
 
