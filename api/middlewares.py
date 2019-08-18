@@ -6,6 +6,7 @@ from .schemas import CitizenSchema
 
 @web.middleware
 async def import_exist(request, handler):
+    """Проверяет существование импорта"""
     import_id = request.match_info.get('import_id')
 
     async with request.app['db'].acquire() as conn:
@@ -51,6 +52,7 @@ async def update_citizen_validation(request, handler):
 
 @web.middleware
 async def validate_citizen(request, handler):
+    """Проверяет существование импорта, пользователя и родственников"""
     import_id = int(request.match_info.get('import_id'))
     citizen_id = int(request.match_info.get('citizen_id'))
     relatives = request['relatives']

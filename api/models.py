@@ -82,30 +82,31 @@ async def insert_import(conn, new_citizens, new_relatives) -> Integer:
     return import_id
 
 
-async def delete_relatives_for_citizen(conn, citizen_id, citizen_relatives_mapper, deleted_relatives):
-    truly_deleted_relatives = {citizen_relatives_mapper[i] for i in deleted_relatives}
+async def delete_relatives_for_citizen(conn, citizen_id, citizen_relatives_mapper, relatives_for_deleting):
+    """Удаляем родственников из списка"""
+    deleted_relatives = {citizen_relatives_mapper[i] for i in relatives_for_deleting}
 
     await conn.execute(relatives.delete().where(
         or_(and_(relatives.c.citizen_id == citizen_id,
-                 relatives.c.relative_id.in_(truly_deleted_relatives)),
-            and_(relatives.c.citizen_id.in_(truly_deleted_relatives),
+                 relatives.c.relative_id.in_(deleted_relatives)),
+            and_(relatives.c.citizen_id.in_(deleted_relatives),
                  relatives.c.relative_id == citizen_id)),
     ))
 
 
-async def add_relatives_for_citizen(conn, import_id, citizen_id, added_relatives):
+async def add_relatives_for_citizen(conn, import_id, citizen_id, relatives_for_adding):
     """Добавляем родственников из списка"""
     added_relatives_id = await conn.execute(
         select([citizens.c.id, citizens.c.citizen_id])
-        .where(citizens.c.citizen_id.in_(list(added_relatives)))
+        .where(citizens.c.citizen_id.in_(list(relatives_for_adding)))
         .where(citizens.c.import_id == import_id))
     a = await added_relatives_id.fetchall()
 
     added_relatives_mapper = {i[1]: i[0] for i in a}
-    truly_added_relatives = {added_relatives_mapper[i] for i in added_relatives}
+    added_relatives = {added_relatives_mapper[i] for i in relatives_for_adding}
     values = []
 
-    for relative_id in truly_added_relatives:
+    for relative_id in added_relatives:
         values.append({"citizen_id": citizen_id, "relative_id": relative_id})
         values.append({"citizen_id": relative_id, "relative_id": citizen_id})
 
@@ -127,8 +128,7 @@ async def update_citizen_data(conn, import_id, citizen_id, citizen_data, updatin
 
 
 async def update_citizen_relatives(conn, import_id, citizen_id, updating_relatives):
-    """Обновляю родственников пользователя"""
-
+    """Обновляем родственников пользователя"""
     relative_id = await conn.execute(
         select([citizens.c.id, citizens.c.citizen_id]).where(relatives.c.citizen_id == citizen_id)
         .where(relatives.c.relative_id == citizens.c.id)
@@ -174,6 +174,7 @@ async def get_citizen_by_id(conn, citizen_id):
 
 
 async def get_import(conn, import_id):
+    """Получаем всех пользователей в импорте"""
     citizen_relatives = alias(citizens)
     select_fields = [citizens.c.citizen_id,
                      citizens.c.town,
@@ -200,6 +201,7 @@ async def get_import(conn, import_id):
 
 
 async def get_citizens_birthdays(conn, import_id):
+    """Получаем пользователей и дни рождения их родственников"""
     citizen_relatives = alias(citizens)
 
     my_genius_join = citizens.outerjoin(relatives, citizens.c.id == relatives.c.relative_id) \
@@ -240,6 +242,7 @@ async def get_percentiles(conn, import_id):
 
 
 async def check_relatives(conn, import_id, relatives):
+    """Проверяем существование id родственников из спика relatives"""
     result = await conn.execute(select([func.count()])
                                 .where(citizens.c.import_id == import_id)
                                 .where(citizens.c.citizen_id.in_(relatives)))
@@ -252,6 +255,7 @@ async def check_relatives(conn, import_id, relatives):
 
 
 async def check_citizen(conn, import_id, citizen_id):
+    """Проверяем существование горожанина по id импорта и его id"""
     result = await conn.execute(
         select([exists().where(and_(citizens.c.citizen_id == citizen_id, citizens.c.import_id == import_id))]))
 
@@ -259,6 +263,7 @@ async def check_citizen(conn, import_id, citizen_id):
 
 
 async def check_import(conn, import_id):
+    """Проверяем существование импорта по id"""
     result = await conn.execute(
         select([exists().where(citizens.c.import_id == import_id)]))
 
