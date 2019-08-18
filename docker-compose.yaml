@@ -16,7 +16,7 @@ services:
         - "8080"
       volumes:
           - ./:/app
-      command: gunicorn api.app:init_app -b :8080 --worker-class aiohttp.GunicornWebWorker --reload
+      command: gunicorn api.app:init_gunicorn_app -b :8080 --worker-class aiohttp.GunicornWebWorker --reload
 
   nginx:
       container_name: backend_nginx
