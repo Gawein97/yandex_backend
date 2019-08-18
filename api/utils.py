@@ -12,6 +12,4 @@ TRAFARET = T.Dict({
             'minsize': T.Int(),
             'maxsize': T.Int(),
         }),
-    T.Key('host'): T.IP,
-    T.Key('port'): T.Int(),
 })

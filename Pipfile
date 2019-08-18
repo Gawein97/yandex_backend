@@ -11,6 +11,7 @@ aiohttp = "*"
 gunicorn = "*"
 flake8 = "*"
 pytest = "*"
+idna_ssl = "*"
 pytest-aiohttp = "*"
 aiopg = {extras = ["sa"],version = "*"}
 trafaret-config = "*"
