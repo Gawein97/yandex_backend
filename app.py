@@ -15,6 +15,7 @@ parser.add_argument('--path')
 parser.add_argument('--port')
 
 if __name__ == '__main__':
+    # ВАЖНО!! ТОЛЬКО ДЛЯ ДЕПЛОЯ НА БОЕВОЙ СЕРВЕР
     app = web.Application(router=UrlDispatcherEx())
     app['config'] = get_config()
     setup_aiohttp_apispec(app=app, error_callback=my_error_handler)
