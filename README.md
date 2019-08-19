@@ -71,7 +71,7 @@ upstream aiohttp {
     }
   }
 ```
-Или вы можете скопировать пример конфига из папки deploy `$ copy ./deploy/api.conf /etc/nginx/sites-avaliable/api.conf`
+Или вы можете скопировать пример конфига из папки deploy `$ cp ./deploy/api.conf /etc/nginx/sites-avaliable/api.conf`
  
 Затем создайте ссылку на файл конфига в директории sites-enabled `$ ln -s /etc/nginx/sites-available/api.conf /etc/nginx/sites-enabled/api.conf`
 
@@ -94,7 +94,7 @@ user=nobody
 autostart=true
 autorestart=true
 ``` 
-Из директории deploy можно так же скопировать конфиг `$ copy ./deploy/aiohttp.conf /etc/supervisor/conf.d/aiohttp.conf`
+Из директории deploy можно так же скопировать конфиг `$ cp ./deploy/aiohttp.conf /etc/supervisor/conf.d/aiohttp.conf`
 
 Затем запустите supervisor `$ supervisorctl start all`
 
