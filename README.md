@@ -13,11 +13,25 @@
 
 ```$ docker-compose exec web python init_db.py```
 
-Могут возникнуть проблемы с коннектом к базе, но просто измените конфигурацию запускаемого приложения, что бы работало
+Если база не создана, то в начале может возникнуть проблема в том что приложение попытается обратиться к базе.
+
+В этом случае за коментируйте строки в функции инициализации, у вас должно получиться как в примере
+```python
+async def init_app(argv=None):
+    app = web.Application(router=UrlDispatcherEx())
+    app['config'] = get_config(argv)
+    setup_aiohttp_apispec(app=app, error_callback=my_error_handler)
+    app.middlewares.append(validation_middleware)
+    #app.on_startup.append(init_pg)
+    #app.on_cleanup.append(close_pg)
+    setup_routes(app)
+    return app
+```
+После этого выполните скрипт для инициализации базы данных и схемы таблиц
 
 
 ## Запуск Тестов
-Для запуска тестов в при поднятом контейнере воспользуйтесь следующей командой
+Для запуска тестов воспользуйтесь следующей командой
 
 ```$ docker-compose exec web pytest```
 
@@ -41,7 +55,7 @@
 После по адресу `/ect/nginx/sites-avaliable/`
 создайте файл `api.conf` затем добавьте в него следующий код
 
-``` 
+```
 upstream aiohttp {
     # fail_timeout=0 means we always retry an upstream even if it failed
     # to return a good HTTP response
