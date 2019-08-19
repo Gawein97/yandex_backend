@@ -120,6 +120,8 @@ def sample_data(engine=test_engine):
 
 if __name__ == '__main__':
     setup_db(USER_CONFIG['postgres'])
+    print("Database has been created sucessfully")
     create_tables(engine=user_engine)
+    print("Tables schema has been created")
     # drop_tables()
     # teardown_db(config)
