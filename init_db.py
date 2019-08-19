@@ -5,11 +5,9 @@ from api.settings import BASE_DIR, get_config
 
 DSN = "postgresql://{user}:{password}@{host}:{port}/{database}"
 
-ADMIN_DB_URL = DSN.format(
-    user='postgres', password='postgres', database='postgres',
-    host='postgres', port=5432
-)
-
+ADMIN__CONFIG_PATH = BASE_DIR / 'config' / 'api_admin.yaml'
+ADMIN_CONFIG = get_config(['-c', ADMIN__CONFIG_PATH.as_posix()])
+ADMIN_DB_URL = DSN.format(**ADMIN_CONFIG['postgres'])
 admin_engine = create_engine(ADMIN_DB_URL, isolation_level='AUTOCOMMIT')
 
 USER_CONFIG_PATH = BASE_DIR / 'config' / 'api.yaml'
